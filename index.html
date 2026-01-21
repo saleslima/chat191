@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chat Profissional</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="root">
+    <!-- Conteúdo de fundo apenas para mostrar sobreposição -->
+    <div class="background-content">
+      <div class="background-panel">
+        <p class="bg-title">Área de Trabalho</p>
+        <p class="bg-subtitle">O chat aparecerá automaticamente em primeiro plano ao receber mensagens.</p>
+      </div>
+    </div>
+
+    <!-- Overlay do chat que fica em primeiro plano -->
+    <div id="chat-overlay" class="chat-overlay hidden">
+      <div class="chat-window">
+        <header class="chat-header">
+          <div class="chat-title-group">
+            <span class="chat-title">Atendimento</span>
+            <span class="chat-user-label" id="chatUserLabel"></span>
+          </div>
+          <div class="header-actions">
+            <button id="clearChatBtn" class="icon-btn hidden" aria-label="Limpar Conversa" title="Limpar Conversa">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h18"></path>
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+              </svg>
+            </button>
+            <button id="chatMinimizeBtn" class="icon-btn" aria-label="Minimizar chat" title="Minimizar">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                 <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+            <button id="chatCloseBtn" class="icon-btn" aria-label="Fechar" title="Fechar/Sair">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <div id="userSetup" class="user-setup">
+          <div class="setup-section">
+            <label class="field-label" for="userPA">P.A</label>
+            <select id="userPA" class="select-input setup-select"></select>
+            <p class="field-hint">Selecione seu número de P.A.</p>
+          </div>
+
+          <div class="setup-section">
+            <span class="field-label">Perfil</span>
+            <div class="profile-list">
+              <button type="button" class="profile-item" data-role="atendente">Atendente</button>
+              <button type="button" class="profile-item" data-role="supervisao_civil">Superv Civil</button>
+              <button type="button" class="profile-item" data-role="supervisao_militar">Superv Militar</button>
+              <button type="button" class="profile-item" data-role="supervisao_cobom">Superv COBOM</button>
+            </div>
+          </div>
+
+          <div id="detailsSection" class="details-section hidden">
+            <div class="setup-section">
+              <label class="field-label" for="userName">Nome</label>
+              <input
+                id="userName"
+                type="text"
+                class="text-input"
+                placeholder="Digite seu nome"
+                autocomplete="name"
+              />
+            </div>
+
+            <div class="setup-section supervisor-password hidden" id="supervisorPasswordSection">
+              <label class="field-label" for="supervisorPassword">Senha de supervisão</label>
+              <input
+                id="supervisorPassword"
+                type="password"
+                class="text-input"
+                placeholder="Digite a senha"
+                autocomplete="off"
+              />
+              <p class="field-hint" id="passwordHint"></p>
+            </div>
+
+            <button id="startChatBtn" class="primary-btn">Entrar no chat</button>
+          </div>
+        </div>
+
+        <div id="chatContent" class="chat-content hidden">
+          <div id="supervisorControls" class="supervisor-controls hidden">
+            <div id="queueSection" class="queue-section">
+              <div class="queue-header">
+                <span class="queue-label">Mensagens / Atendimentos</span>
+                <button id="resetFilterBtn" class="reset-btn hidden" title="Voltar para visão geral">Voltar / Novo</button>
+              </div>
+              <div id="conversationQueue" class="conversation-queue"></div>
+            </div>
+            <div class="control-row">
+              <label class="field-label" for="targetSelect">Enviar para</label>
+              <select id="targetSelect" class="select-input"></select>
+            </div>
+          </div>
+          <div id="atendenteControls" class="supervisor-controls hidden">
+            <label class="field-label" for="supervisorTypeSelect">Tipo de Supervisão</label>
+            <select id="supervisorTypeSelect" class="select-input">
+              <option value="supervisao_civil">Superv Civil</option>
+              <option value="supervisao_militar">Superv Militar</option>
+              <option value="supervisao_cobom">Superv COBOM</option>
+            </select>
+          </div>
+          <div id="messagesContainer" class="messages-container"></div>
+
+          <form id="messageForm" class="message-form">
+            <label class="image-input-label">
+              <input id="imageInput" type="file" accept="image/*" class="image-input" />
+              📷
+            </label>
+            <input
+              id="messageInput"
+              type="text"
+              class="message-input"
+              placeholder="Digite uma mensagem"
+              autocomplete="off"
+            />
+            <button type="submit" class="send-btn">Enviar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botão flutuante para reabrir o chat quando minimizado -->
+    <button id="floatingChatBtn" class="floating-chat-btn hidden" aria-label="Abrir chat">
+      Chat
+    </button>
+
+    <!-- Modal de Broadcast -->
+    <div id="broadcastModal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <h3 class="modal-title">📣 Enviar Comunicado Geral</h3>
+        <p class="modal-subtitle">Esta mensagem será enviada para o grupo selecionado.</p>
+        <textarea id="broadcastMessageInput" class="broadcast-textarea" placeholder="Digite o comunicado aqui..."></textarea>
+        <div class="modal-actions">
+          <button id="cancelBroadcastBtn" class="secondary-btn">Cancelar</button>
+          <button id="confirmBroadcastBtn" class="primary-btn">Enviar Mensagem</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>

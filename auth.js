@@ -9,7 +9,7 @@ export function setupUsersListener() {
   state.usersUnsubscribe = onValue(usersQuery, (snapshot) => {
     setActiveUsers(snapshot.val());
     UI.updateTargetSelect();
-    // Update P.A. dropdown to reflect active users
+    // Update PA dropdown to reflect occupied PAs if user is still on setup screen
     if (state.selectedRole && !state.currentUser) {
       UI.populatePASelect(state.selectedRole);
     }

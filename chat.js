@@ -1,5 +1,5 @@
-import { push, onValue, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { messagesRef } from './firebase-config.js';
+import { push, onValue, query, limitToLast, remove, ref } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { messagesRef, database } from './firebase-config.js';
 import { state } from './state.js';
 import * as UI from './ui.js';
 import { isMessageRelevant, isMessageExpired, fileToBase64 } from './utils.js';
@@ -48,40 +48,19 @@ export function setupFirebaseListener() {
 
   const messagesQuery = query(messagesRef, limitToLast(100));
   
-  state.messagesUnsubscribe = onValue(messagesQuery, async (snapshot) => {
+  state.messagesUnsubscribe = onValue(messagesQuery, (snapshot) => {
     if (!state.currentUser) return;
     
     const messages = [];
-    const expiredMessages = [];
-    
     snapshot.forEach((childSnapshot) => {
-      const msg = {
+      messages.push({
         id: childSnapshot.key,
         ...childSnapshot.val()
-      };
-      
-      if (isMessageExpired(msg.timestamp)) {
-        expiredMessages.push(childSnapshot.key);
-      } else {
-        messages.push(msg);
-      }
+      });
     });
     
-    // Delete expired messages from Firebase
-    if (expiredMessages.length > 0) {
-      const { remove, ref } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js");
-      const { database } = await import('./firebase-config.js');
-      
-      for (const msgId of expiredMessages) {
-        try {
-          await remove(ref(database, `messages/${msgId}`));
-        } catch (err) {
-          console.error("Erro ao remover mensagem expirada:", err);
-        }
-      }
-    }
-    
-    state.messagesHistory = messages;
+    const validMessages = messages.filter(msg => !isMessageExpired(msg.timestamp));
+    state.messagesHistory = validMessages;
 
     // Update Conversation Queue (Supervisors only)
     if (['supervisao_civil', 'supervisao_militar', 'supervisao_cobom'].includes(state.currentUser.role)) {
@@ -89,7 +68,7 @@ export function setupFirebaseListener() {
        const pendingPAs = new Set();
        const lastMessageByPA = {};
 
-       messages.forEach(msg => {
+       validMessages.forEach(msg => {
          // Determine the "other" party
          if (isMessageRelevant(msg)) {
             let pa = null;
@@ -124,7 +103,7 @@ export function setupFirebaseListener() {
     
     // Notifications for new messages
     if (!state.isFirstLoad) {
-       const recentMessage = messages[messages.length - 1];
+       const recentMessage = validMessages[validMessages.length - 1];
        // If valid, relevant, and not from me
        if (recentMessage && 
            recentMessage.from !== state.currentUser.pa && 
@@ -136,6 +115,23 @@ export function setupFirebaseListener() {
     }
     state.isFirstLoad = false;
   });
+}
+
+export async function cleanupExpiredMessages() {
+  if (!state.messagesHistory || state.messagesHistory.length === 0) return;
+  
+  const expiredMessages = state.messagesHistory.filter(msg => isMessageExpired(msg.timestamp));
+  
+  for (const msg of expiredMessages) {
+    if (msg.id && !msg.id.startsWith('temp_')) {
+      try {
+        await remove(ref(database, `messages/${msg.id}`));
+        console.log(`Deleted expired message: ${msg.id}`);
+      } catch (err) {
+        console.error(`Failed to delete message ${msg.id}:`, err);
+      }
+    }
+  }
 }
 
 export async function sendMessage(text, imageFile, targetOverride = null) {

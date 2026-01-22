@@ -73,27 +73,12 @@ export function displayMessage(message, isBlinking = false) {
   const isSent = message.from === state.currentUser.pa;
   const messageRow = document.createElement("div");
   messageRow.className = `message-row ${isSent ? "sent" : "received"}`;
-  messageRow.dataset.messageId = message.id;
 
   const messageBubble = document.createElement("div");
   messageBubble.className = "message-bubble";
-  messageBubble.style.position = "relative";
   
   if (isBlinking) {
     messageBubble.classList.add("blinking");
-  }
-
-  // Delete button (only for sent messages and not temp messages)
-  if (isSent && message.id && !message.id.startsWith('temp_')) {
-    const deleteBtn = document.createElement("button");
-    deleteBtn.className = "delete-btn";
-    deleteBtn.innerHTML = "×";
-    deleteBtn.title = "Excluir mensagem";
-    deleteBtn.onclick = (e) => {
-      e.stopPropagation();
-      deleteMessage(message.id);
-    };
-    messageBubble.appendChild(deleteBtn);
   }
 
   // Sender Info
@@ -139,28 +124,11 @@ export function displayMessage(message, isBlinking = false) {
   elements.messagesContainer.scrollTop = elements.messagesContainer.scrollHeight;
 }
 
-async function deleteMessage(messageId) {
-  if (!confirm('Deseja excluir esta mensagem?')) return;
-  
-  try {
-    const { remove, ref } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js");
-    const { database } = await import('./firebase-config.js');
-    
-    await remove(ref(database, `messages/${messageId}`));
-    
-    // Remove from local display
-    const messageRow = document.querySelector(`[data-message-id="${messageId}"]`);
-    if (messageRow) {
-      messageRow.remove();
-    }
-  } catch (error) {
-    console.error("Erro ao excluir mensagem:", error);
-    alert("Erro ao excluir mensagem.");
-  }
-}
-
 export function populatePASelect(role) {
   elements.userPAInput.innerHTML = '<option value="" disabled selected>Selecione o P.A</option>';
+  
+  // Get list of PAs already in use
+  const occupiedPAs = new Set(Object.keys(state.activeUsers || {}));
   
   let paNumbers = [];
   
@@ -192,19 +160,16 @@ export function populatePASelect(role) {
     }
   }
   
-  // Filter out P.A.s that are already in use
-  const activePAs = Object.keys(state.activeUsers || {});
-  paNumbers = paNumbers.filter(num => {
-    const val = num.toString().padStart(4, '0');
-    return !activePAs.includes(val);
-  });
-  
   paNumbers.forEach(num => {
     const val = num.toString().padStart(4, '0');
-    const option = document.createElement('option');
-    option.value = val;
-    option.textContent = `P.A ${val}`;
-    elements.userPAInput.appendChild(option);
+    
+    // Only add PA if it's not currently occupied
+    if (!occupiedPAs.has(val)) {
+      const option = document.createElement('option');
+      option.value = val;
+      option.textContent = `P.A ${val}`;
+      elements.userPAInput.appendChild(option);
+    }
   });
 }
 

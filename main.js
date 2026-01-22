@@ -16,8 +16,6 @@ UI.elements.userRoleSelect.addEventListener("change", (e) => {
   
   if (role) {
     UI.elements.paSection.classList.remove("hidden");
-    // Start listening to active users to filter P.A. dropdown
-    Auth.setupUsersListener();
     UI.populatePASelect(role);
     UI.elements.detailsSection.classList.remove("hidden");
 
@@ -170,3 +168,10 @@ window.addEventListener('load', async () => {
     }
   }
 });
+
+// Cleanup expired messages every 5 minutes
+setInterval(() => {
+  if (state.currentUser) {
+    Chat.cleanupExpiredMessages();
+  }
+}, 5 * 60 * 1000);

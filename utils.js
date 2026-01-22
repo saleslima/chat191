@@ -25,22 +25,31 @@ export function isMessageRelevant(message) {
 
   // Broadcast to Atendentes
   if (message.target === 'broadcast_atendentes') {
-    if (state.currentUser.role === 'atendente') return true;
+    if (state.currentUser.role === 'atendente' || state.currentUser.role === 'atendente_cobom') return true;
     if (["supervisao_civil", "supervisao_militar", "supervisao_cobom"].includes(state.currentUser.role)) return true;
     return false;
   }
 
   // Targeted at my PA
   if (message.target === myPA) {
-    if (message.targetName && message.targetName !== myName) {
-      return false;
-    }
     return true;
   }
 
   // Targeted at my Role
   if (["supervisao_civil", "supervisao_militar", "supervisao_cobom"].includes(state.currentUser.role)) {
      if (message.supervisorType === state.currentUser.role) return true;
+  }
+
+  // 3. If I'm a supervisor, show messages from other supervisors of same type
+  if (["supervisao_civil", "supervisao_militar", "supervisao_cobom"].includes(state.currentUser.role)) {
+    // Show ALL messages sent by supervisors of my same type (including to specific attendants)
+    if (message.fromRole === state.currentUser.role) {
+      return true;
+    }
+    // Show messages sent TO supervisors of my same type (attendant replies)
+    if (message.supervisorType === state.currentUser.role) {
+      return true;
+    }
   }
 
   return false;

@@ -303,6 +303,8 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
+  max-height: 100%;
+  overflow: hidden;
   background: #e5e9f0; /* Chat background */
 }
 
@@ -468,13 +470,15 @@ body {
 
 /* Lista de mensagens */
 .messages-container {
-  flex: 1;
+  flex: 1 1 auto;
   padding: 20px;
   overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   gap: 12px;
   min-height: 0;
+  max-height: 100%;
 }
 
 .messages-container::-webkit-scrollbar {
@@ -551,16 +555,23 @@ body {
 
 /* Formulário de envio */
 .message-form {
-  flex: 0 0 auto;
-  flex-shrink: 0;
+  flex: 0 0 auto !important;
+  flex-shrink: 0 !important;
   padding: 16px;
   background: var(--white);
   border-top: 1px solid var(--gray-200);
-  display: flex;
+  display: flex !important;
   align-items: center;
   gap: 12px;
   position: relative;
-  z-index: 100; /* Ensure high z-index to stay visible */
+  z-index: 100;
+  min-height: 76px;
+}
+
+/* Ensure message form is never hidden */
+.message-form.hidden {
+  display: flex !important;
+  visibility: visible !important;
 }
 
 .image-input-label {

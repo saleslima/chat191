@@ -191,26 +191,29 @@ export function updateTargetSelect() {
   allAtendentesOption.textContent = '📣 ENVIAR A TODOS (ATENDENTES)';
   elements.targetSelect.appendChild(allAtendentesOption);
   
+  // Only show active (logged-in) users
   Object.keys(state.activeUsers).sort().forEach(paKey => {
      if (paKey === state.currentUser.pa) return;
      
      const user = state.activeUsers[paKey];
-     const option = document.createElement('option');
-     option.value = paKey;
-     option.textContent = `P.A ${paKey} - ${user.name} (${formatRole(user.role)})`;
-     elements.targetSelect.appendChild(option);
+     if (user) { // Only add if user data exists
+       const option = document.createElement('option');
+       option.value = paKey;
+       option.textContent = `P.A ${paKey} - ${user.name} (${formatRole(user.role)})`;
+       elements.targetSelect.appendChild(option);
+     }
   });
   
   if (state.chatFilter) {
-    // Ensure the filtered user is available in the dropdown even if offline
-    if (!elements.targetSelect.querySelector(`option[value="${state.chatFilter}"]`)) {
-       const option = document.createElement('option');
-       option.value = state.chatFilter;
-       option.textContent = `P.A ${state.chatFilter}`;
-       elements.targetSelect.appendChild(option);
+    // Only keep filtered user in dropdown if they are still active
+    if (state.activeUsers[state.chatFilter]) {
+      elements.targetSelect.value = state.chatFilter;
+      elements.targetSelect.disabled = true;
+    } else {
+      // User logged off, clear filter
+      setChatFilter(null);
+      return;
     }
-    elements.targetSelect.value = state.chatFilter;
-    elements.targetSelect.disabled = true;
   } else {
     elements.targetSelect.disabled = false;
     if (currentVal && elements.targetSelect.querySelector(`option[value="${currentVal}"]`)) {

@@ -6,18 +6,19 @@ import * as Auth from './auth.js';
 import * as Chat from './chat.js';
 
 // Init UI
-UI.populatePASelect();
 UI.showChatOverlay();
 
 // Event Listeners
 
-UI.elements.profileItems.forEach((item) => {
-  item.addEventListener("click", () => {
-    UI.elements.profileItems.forEach((i) => i.classList.remove("active"));
-    item.classList.add("active");
-    const role = item.dataset.role;
-    setSelectedRole(role);
-    
+UI.elements.userRoleSelect.addEventListener("change", (e) => {
+  const role = e.target.value;
+  setSelectedRole(role);
+  
+  if (role) {
+    UI.elements.paSection.classList.remove("hidden");
+    // Start listening to active users to filter P.A. dropdown
+    Auth.setupUsersListener();
+    UI.populatePASelect(role);
     UI.elements.detailsSection.classList.remove("hidden");
 
     if (role === "supervisao_civil") {
@@ -33,7 +34,7 @@ UI.elements.profileItems.forEach((item) => {
       UI.elements.supervisorPasswordSection.classList.add("hidden");
       UI.elements.passwordHint.textContent = "";
     }
-  });
+  }
 });
 
 UI.elements.startChatBtn.addEventListener("click", async () => {

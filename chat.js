@@ -48,19 +48,40 @@ export function setupFirebaseListener() {
 
   const messagesQuery = query(messagesRef, limitToLast(100));
   
-  state.messagesUnsubscribe = onValue(messagesQuery, (snapshot) => {
+  state.messagesUnsubscribe = onValue(messagesQuery, async (snapshot) => {
     if (!state.currentUser) return;
     
     const messages = [];
+    const expiredMessages = [];
+    
     snapshot.forEach((childSnapshot) => {
-      messages.push({
+      const msg = {
         id: childSnapshot.key,
         ...childSnapshot.val()
-      });
+      };
+      
+      if (isMessageExpired(msg.timestamp)) {
+        expiredMessages.push(childSnapshot.key);
+      } else {
+        messages.push(msg);
+      }
     });
     
-    const validMessages = messages.filter(msg => !isMessageExpired(msg.timestamp));
-    state.messagesHistory = validMessages;
+    // Delete expired messages from Firebase
+    if (expiredMessages.length > 0) {
+      const { remove, ref } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js");
+      const { database } = await import('./firebase-config.js');
+      
+      for (const msgId of expiredMessages) {
+        try {
+          await remove(ref(database, `messages/${msgId}`));
+        } catch (err) {
+          console.error("Erro ao remover mensagem expirada:", err);
+        }
+      }
+    }
+    
+    state.messagesHistory = messages;
 
     // Update Conversation Queue (Supervisors only)
     if (['supervisao_civil', 'supervisao_militar', 'supervisao_cobom'].includes(state.currentUser.role)) {
@@ -68,7 +89,7 @@ export function setupFirebaseListener() {
        const pendingPAs = new Set();
        const lastMessageByPA = {};
 
-       validMessages.forEach(msg => {
+       messages.forEach(msg => {
          // Determine the "other" party
          if (isMessageRelevant(msg)) {
             let pa = null;
@@ -103,7 +124,7 @@ export function setupFirebaseListener() {
     
     // Notifications for new messages
     if (!state.isFirstLoad) {
-       const recentMessage = validMessages[validMessages.length - 1];
+       const recentMessage = messages[messages.length - 1];
        // If valid, relevant, and not from me
        if (recentMessage && 
            recentMessage.from !== state.currentUser.pa && 
@@ -149,7 +170,7 @@ export async function sendMessage(text, imageFile, targetOverride = null) {
     if (messageData.target !== 'all' && messageData.target !== 'broadcast_atendentes' && state.activeUsers[messageData.target]) {
       messageData.targetName = state.activeUsers[messageData.target].name.toUpperCase();
     }
-  } else if (state.currentUser.role === "atendente") {
+  } else if (state.currentUser.role === "atendente" || state.currentUser.role === "atendente_cobom") {
     messageData.supervisorType = UI.elements.supervisorTypeSelect.value;
   }
 

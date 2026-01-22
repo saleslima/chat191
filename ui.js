@@ -12,9 +12,10 @@ export const elements = {
   detailsSection: document.getElementById("detailsSection"),
   supervisorPasswordSection: document.getElementById("supervisorPasswordSection"),
   userPAInput: document.getElementById("userPA"),
+  paSection: document.getElementById("paSection"),
+  userRoleSelect: document.getElementById("userRole"),
   userNameInput: document.getElementById("userName"),
   supervisorPasswordInput: document.getElementById("supervisorPassword"),
-  profileItems: document.querySelectorAll(".profile-item"),
   startChatBtn: document.getElementById("startChatBtn"),
   messagesContainer: document.getElementById("messagesContainer"),
   messageForm: document.getElementById("messageForm"),
@@ -59,6 +60,7 @@ export function clearMessages() {
 
 export function formatRole(role) {
   if (role === 'atendente') return 'Atendente';
+  if (role === 'atendente_cobom') return 'Atendente COBOM';
   if (role === 'supervisao_civil') return 'Sup. Civil';
   if (role === 'supervisao_militar') return 'Sup. Militar';
   if (role === 'supervisao_cobom') return 'Sup. COBOM';
@@ -71,12 +73,27 @@ export function displayMessage(message, isBlinking = false) {
   const isSent = message.from === state.currentUser.pa;
   const messageRow = document.createElement("div");
   messageRow.className = `message-row ${isSent ? "sent" : "received"}`;
+  messageRow.dataset.messageId = message.id;
 
   const messageBubble = document.createElement("div");
   messageBubble.className = "message-bubble";
+  messageBubble.style.position = "relative";
   
   if (isBlinking) {
     messageBubble.classList.add("blinking");
+  }
+
+  // Delete button (only for sent messages and not temp messages)
+  if (isSent && message.id && !message.id.startsWith('temp_')) {
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "delete-btn";
+    deleteBtn.innerHTML = "×";
+    deleteBtn.title = "Excluir mensagem";
+    deleteBtn.onclick = (e) => {
+      e.stopPropagation();
+      deleteMessage(message.id);
+    };
+    messageBubble.appendChild(deleteBtn);
   }
 
   // Sender Info
@@ -122,15 +139,73 @@ export function displayMessage(message, isBlinking = false) {
   elements.messagesContainer.scrollTop = elements.messagesContainer.scrollHeight;
 }
 
-export function populatePASelect() {
+async function deleteMessage(messageId) {
+  if (!confirm('Deseja excluir esta mensagem?')) return;
+  
+  try {
+    const { remove, ref } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js");
+    const { database } = await import('./firebase-config.js');
+    
+    await remove(ref(database, `messages/${messageId}`));
+    
+    // Remove from local display
+    const messageRow = document.querySelector(`[data-message-id="${messageId}"]`);
+    if (messageRow) {
+      messageRow.remove();
+    }
+  } catch (error) {
+    console.error("Erro ao excluir mensagem:", error);
+    alert("Erro ao excluir mensagem.");
+  }
+}
+
+export function populatePASelect(role) {
   elements.userPAInput.innerHTML = '<option value="" disabled selected>Selecione o P.A</option>';
-  for (let i = 1; i <= 208; i++) {
-    const val = i.toString().padStart(3, '0');
+  
+  let paNumbers = [];
+  
+  if (role === 'supervisao_civil' || role === 'supervisao_militar' || role === 'supervisao_cobom') {
+    // Supervisor PAs: 3161-3170
+    for (let i = 3161; i <= 3170; i++) {
+      paNumbers.push(i);
+    }
+  } else if (role === 'atendente_cobom') {
+    // Atendente COBOM PAs: 1121-1127, 1140-1146, 1159-1165, 1178-1184
+    for (let i = 1121; i <= 1127; i++) paNumbers.push(i);
+    for (let i = 1140; i <= 1146; i++) paNumbers.push(i);
+    for (let i = 1159; i <= 1165; i++) paNumbers.push(i);
+    for (let i = 1178; i <= 1184; i++) paNumbers.push(i);
+  } else if (role === 'atendente') {
+    // Regular Atendente: 1-208 excluding supervisor and COBOM ranges
+    const excludedRanges = [
+      ...Array.from({length: 10}, (_, i) => 3161 + i), // 3161-3170
+      ...Array.from({length: 7}, (_, i) => 1121 + i),  // 1121-1127
+      ...Array.from({length: 7}, (_, i) => 1140 + i),  // 1140-1146
+      ...Array.from({length: 7}, (_, i) => 1159 + i),  // 1159-1165
+      ...Array.from({length: 7}, (_, i) => 1178 + i)   // 1178-1184
+    ];
+    
+    for (let i = 1; i <= 208; i++) {
+      if (!excludedRanges.includes(i)) {
+        paNumbers.push(i);
+      }
+    }
+  }
+  
+  // Filter out P.A.s that are already in use
+  const activePAs = Object.keys(state.activeUsers || {});
+  paNumbers = paNumbers.filter(num => {
+    const val = num.toString().padStart(4, '0');
+    return !activePAs.includes(val);
+  });
+  
+  paNumbers.forEach(num => {
+    const val = num.toString().padStart(4, '0');
     const option = document.createElement('option');
     option.value = val;
     option.textContent = `P.A ${val}`;
     elements.userPAInput.appendChild(option);
-  }
+  });
 }
 
 export function updateTargetSelect() {
@@ -253,5 +328,6 @@ export function resetLoginForm() {
   elements.supervisorPasswordInput.value = "";
   elements.messageInput.value = "";
   elements.userPAInput.value = "";
-  elements.profileItems.forEach(item => item.classList.remove("active"));
+  elements.userRoleSelect.value = "";
+  elements.paSection.classList.add("hidden");
 }

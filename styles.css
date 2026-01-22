@@ -213,49 +213,7 @@ body {
   display: none;
 }
 
-.profile-list {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 4px;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-}
 
-.profile-item {
-  border: 2px solid var(--gray-200);
-  border-radius: var(--radius-lg);
-  padding: 16px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--gray-700);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 8px;
-  cursor: pointer;
-  background: var(--white);
-  transition: all 0.2s;
-  height: 80px;
-}
-
-.profile-item::after {
-  content: none;
-}
-
-.profile-item:hover {
-  border-color: var(--gray-300);
-  background: var(--gray-50);
-}
-
-.profile-item.active {
-  border-color: var(--primary);
-  background: var(--primary-bg);
-  color: var(--primary-dark);
-}
 
 .details-section.hidden {
   display: none;
@@ -783,6 +741,66 @@ body {
   color: var(--gray-900);
 }
 
+/* Footer com texto em movimento */
+.footer-scroll {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: var(--gray-900);
+  color: var(--white);
+  padding: 8px 0;
+  overflow: hidden;
+  z-index: 9998;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.footer-text {
+  display: inline-block;
+  white-space: nowrap;
+  animation: scroll-left 20s linear infinite;
+  padding-left: 100%;
+}
+
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.message-bubble .delete-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s;
+  color: white;
+  font-size: 12px;
+  padding: 0;
+}
+
+.message-bubble:hover .delete-btn {
+  opacity: 1;
+}
+
+.delete-btn:hover {
+  background: rgba(239, 68, 68, 0.9);
+}
+
 @media (max-width: 480px) {
   .chat-window {
     width: 100%;
@@ -792,5 +810,8 @@ body {
   }
   .chat-overlay {
     background: var(--white);
+  }
+  .footer-scroll {
+    font-size: 10px;
   }
 }

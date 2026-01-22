@@ -2,8 +2,8 @@ import { state } from './state.js';
 
 export function isMessageExpired(timestamp) {
   if (!timestamp) return false;
-  const twoHours = 2 * 60 * 60 * 1000;
-  return (Date.now() - new Date(timestamp).getTime()) > twoHours;
+  const sixtyMinutes = 60 * 60 * 1000; // 60 minutes in milliseconds
+  return (Date.now() - new Date(timestamp).getTime()) > sixtyMinutes;
 }
 
 export function isMessageRelevant(message) {

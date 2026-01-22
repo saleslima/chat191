@@ -49,19 +49,24 @@
 
         <div id="userSetup" class="user-setup">
           <div class="setup-section">
-            <label class="field-label" for="userPA">P.A</label>
-            <select id="userPA" class="select-input setup-select"></select>
-            <p class="field-hint">Selecione seu número de P.A.</p>
+            <label class="field-label" for="userRole">Perfil</label>
+            <select id="userRole" class="select-input setup-select">
+              <option value="" disabled selected>Selecione seu perfil</option>
+              <option value="atendente">Atendente</option>
+              <option value="atendente_cobom">Atendente COBOM</option>
+              <option value="supervisao_civil">Supervisão Civil</option>
+              <option value="supervisao_militar">Supervisão Militar</option>
+              <option value="supervisao_cobom">Supervisão COBOM</option>
+            </select>
+            <p class="field-hint">Selecione seu perfil de atuação.</p>
           </div>
 
-          <div class="setup-section">
-            <span class="field-label">Perfil</span>
-            <div class="profile-list">
-              <button type="button" class="profile-item" data-role="atendente">Atendente</button>
-              <button type="button" class="profile-item" data-role="supervisao_civil">Superv Civil</button>
-              <button type="button" class="profile-item" data-role="supervisao_militar">Superv Militar</button>
-              <button type="button" class="profile-item" data-role="supervisao_cobom">Superv COBOM</button>
-            </div>
+          <div class="setup-section hidden" id="paSection">
+            <label class="field-label" for="userPA">P.A</label>
+            <select id="userPA" class="select-input setup-select">
+              <option value="" disabled selected>Selecione o P.A</option>
+            </select>
+            <p class="field-hint">Selecione seu número de P.A.</p>
           </div>
 
           <div id="detailsSection" class="details-section hidden">
@@ -138,6 +143,11 @@
     <button id="floatingChatBtn" class="floating-chat-btn hidden" aria-label="Abrir chat">
       Chat
     </button>
+
+    <!-- Rodapé com texto em movimento -->
+    <div class="footer-scroll">
+      <div class="footer-text">DESENVOLVIDO SETOR DE TECNOLOGIA - COPOM SP</div>
+    </div>
 
     <!-- Modal de Broadcast -->
     <div id="broadcastModal" class="modal-overlay hidden">

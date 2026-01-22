@@ -9,6 +9,10 @@ export function setupUsersListener() {
   state.usersUnsubscribe = onValue(usersQuery, (snapshot) => {
     setActiveUsers(snapshot.val());
     UI.updateTargetSelect();
+    // Update P.A. dropdown to reflect active users
+    if (state.selectedRole && !state.currentUser) {
+      UI.populatePASelect(state.selectedRole);
+    }
   });
 }
 
@@ -43,7 +47,7 @@ export async function enterChat(name, pa, role) {
     UI.elements.supervisorControls.classList.remove("hidden");
     UI.elements.atendenteControls.classList.add("hidden");
     setupUsersListener(); 
-  } else if (role === "atendente") {
+  } else if (role === "atendente" || role === "atendente_cobom") {
     UI.elements.supervisorControls.classList.add("hidden");
     UI.elements.atendenteControls.classList.remove("hidden");
   }

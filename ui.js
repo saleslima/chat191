@@ -5,6 +5,7 @@ export const elements = {
   chatOverlay: document.getElementById("chat-overlay"),
   floatingChatBtn: document.getElementById("floatingChatBtn"),
   chatMinimizeBtn: document.getElementById("chatMinimizeBtn"),
+  logoutBtn: document.getElementById("logoutBtn"),
   clearChatBtn: document.getElementById("clearChatBtn"),
   chatCloseBtn: document.getElementById("chatCloseBtn"),
   userSetup: document.getElementById("userSetup"),

@@ -41,6 +41,7 @@ export async function enterChat(name, pa, role) {
   UI.elements.userSetup.classList.add("hidden");
   UI.elements.chatContent.classList.remove("hidden");
   UI.elements.clearChatBtn.classList.remove("hidden");
+  UI.elements.logoutBtn.classList.remove("hidden");
   UI.elements.supervisorPasswordSection.classList.add("hidden");
 
   if (["supervisao_civil", "supervisao_militar", "supervisao_cobom"].includes(role)) {
@@ -87,6 +88,7 @@ export function logout() {
   UI.elements.chatContent.classList.add("hidden");
   UI.elements.userSetup.classList.remove("hidden");
   UI.elements.clearChatBtn.classList.add("hidden");
+  UI.elements.logoutBtn.classList.add("hidden");
   UI.elements.detailsSection.classList.add("hidden");
   UI.elements.supervisorPasswordSection.classList.add("hidden");
   

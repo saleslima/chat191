@@ -111,6 +111,15 @@ export function setupFirebaseListener() {
            !state.messagesHistory.some(m => m.id === recentMessage.id && m.id.startsWith('temp_'))) {
            
            UI.showChatOverlay();
+           
+           // Show browser notification if tab is in background
+           if (document.hidden && 'Notification' in window && Notification.permission === 'granted') {
+             new Notification('Nova mensagem no Chat', {
+               body: `${recentMessage.fromName || 'Usuário'} (P.A ${recentMessage.from}): ${recentMessage.text ? recentMessage.text.substring(0, 50) : 'Imagem'}`,
+               icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="%2310b981"/></svg>',
+               tag: 'chat-message'
+             });
+           }
        }
     }
     state.isFirstLoad = false;

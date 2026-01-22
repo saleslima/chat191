@@ -80,6 +80,8 @@ UI.elements.startChatBtn.addEventListener("click", async () => {
 
 UI.elements.chatCloseBtn.addEventListener("click", Auth.logout);
 
+UI.elements.logoutBtn.addEventListener("click", Auth.logout);
+
 UI.elements.clearChatBtn.addEventListener("click", () => {
   UI.clearMessages();
 });
@@ -151,6 +153,11 @@ if (UI.elements.cancelBroadcastBtn) {
     UI.elements.broadcastMessageInput.value = "";
     currentBroadcastTarget = null;
   });
+}
+
+// Request notification permission
+if ('Notification' in window && Notification.permission === 'default') {
+  Notification.requestPermission();
 }
 
 // Auto-login check
